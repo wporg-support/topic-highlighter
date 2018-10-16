@@ -11,6 +11,10 @@ It does this by putting them into three actionable categories:
 
 The view is color-coded to allow you to quickly identify which topics need attention based on your own support criteria.
 
+## Installation
+
+To install, open `/src/wordpress-plugins-topic-highlighter.user.js` and hit the Raw button. TamperMonkey or GreaseMonkey will take over from there.
+
 ## Contributing
 
 Contributions are welcome, bugreports, suggestions and even pull requests! No limitations, shoot for the stars!
