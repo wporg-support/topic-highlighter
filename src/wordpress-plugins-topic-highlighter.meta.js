@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WordPress.org plugins and themes topic highlighter
 // @namespace    http://clorith.net/
-// @version      0.3.2
+// @version      0.3.3
 // @description  Add status highlights to topics for easy overviews.
 // @author       Clorith
 // @match        https://wordpress.org/support/plugin/*

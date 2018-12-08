@@ -1,11 +1,10 @@
 // ==UserScript==
 // @name         WordPress.org plugins and themes topic highlighter
 // @namespace    http://clorith.net/
-// @version      0.3.2
+// @version      0.3.3
 // @description  Add status highlights to topics for easy overviews.
 // @author       Clorith
-// @match        https://wordpress.org/support/plugin/*
-// @match        https://wordpress.org/support/theme/*
+// @match        https://wordpress.org/support/*
 // @require      https://code.jquery.com/jquery-1.11.0.min.js
 // @resource     configHtml https://raw.githubusercontent.com/Clorith/wporg-topic-highlighter/master/src/options.html
 // @grant        GM_getResourceText
@@ -14,7 +13,7 @@
 jQuery(document).ready(function( $ ) {
 	/*
 	 * The rules here are cascading, later rules will overwrite earlier ones.
-	 * This is doen to ensure the right priority is applied, as some states are more important than others.
+	 * This is done to ensure the right priority is applied, as some states are more important than others.
 	 */
 
 	var text, $topics,
@@ -32,10 +31,23 @@ jQuery(document).ready(function( $ ) {
 					background: '#ffc173',
 					text: 'inherit'
 				}
-			}
+			},
+            nonPOrT: false
 		};
 
+	function should_topics_process() {
+        if (settings.nonPOrT) {
+            return true;
+        }
+
+        return window.location.href.match(/\/support\/(theme|plugin)\/*/g);
+    }
+
 	function process_topics() {
+		if ( ! should_topics_process() ) {
+			return false;
+		}
+
 		// Highlight topics that are more than a week old.
 		$topics = $( '.bbp-topic-freshness' );
 
@@ -94,6 +106,7 @@ jQuery(document).ready(function( $ ) {
 		$( '#tamper-wp-topic-highlighter-new-text' ).val( settings.color.new.text );
 		$( '#tamper-wp-topic-highlighter-old' ).val( settings.color.old.background );
 		$( '#tamper-wp-topic-highlighter-old-text' ).val( settings.color.old.text );
+ 		$( '#tamper-wp-topic-highlighter-nonport' ).prop( 'checked', settings.nonPOrT );
 	});
 
 	// Save options
@@ -106,6 +119,7 @@ jQuery(document).ready(function( $ ) {
 		settings.color.new.text = $( '#tamper-wp-topic-highlighter-new-text' ).val();
 		settings.color.old.background = $( '#tamper-wp-topic-highlighter-old' ).val();
 		settings.color.old.text = $( '#tamper-wp-topic-highlighter-old-text' ).val();
+		settings.nonPOrT = $( '#tamper-wp-topic-highlighter-nonport' ).is( ':checked');
 
 		localStorage.setItem( 'wp_highlighter', JSON.stringify( settings ) );
 
