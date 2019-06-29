@@ -12,6 +12,8 @@
 // @exclude      https://*.wordpress.org/support/view/spam*
 // @require      https://code.jquery.com/jquery-1.11.0.min.js
 // @resource     configHtml https://raw.githubusercontent.com/wporg-support/topic-highlighter/master/src/options.html
+// @updateURL    https://github.com/wporg-support/topic-highlighter/raw/master/src/wordpress-plugins-topic-highlighter.user.js
+// @downloadURL  https://github.com/wporg-support/topic-highlighter/raw/master/src/wordpress-plugins-topic-highlighter.user.js
 // @grant        GM_getResourceText
 // ==/UserScript==
 
