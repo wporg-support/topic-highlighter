@@ -1,13 +1,17 @@
 // ==UserScript==
 // @name         WordPress.org plugins and themes topic highlighter
 // @namespace    http://clorith.net/
-// @version      0.3.4
+// @version      0.4.0
 // @description  Add status highlights to topics for easy overviews.
 // @author       Clorith
 // @match        https://wordpress.org/support/*
 // @match        https://*.wordpress.org/support/*
+// @exclude      https://wordpress.org/support/view/pending*
+// @exclude      https://*.wordpress.org/support/view/pending*
+// @exclude      https://wordpress.org/support/view/spam*
+// @exclude      https://*.wordpress.org/support/view/spam*
 // @require      https://code.jquery.com/jquery-1.11.0.min.js
-// @resource     configHtml https://raw.githubusercontent.com/Clorith/wporg-topic-highlighter/master/src/options.html
+// @resource     configHtml https://raw.githubusercontent.com/wporg-support/topic-highlighter/master/src/options.html
 // @grant        GM_getResourceText
 // ==/UserScript==
 
@@ -17,7 +21,11 @@ jQuery(document).ready(function( $ ) {
 	 * This is done to ensure the right priority is applied, as some states are more important than others.
 	 */
 
-	var text, $topics,
+	var text, $topics, $permalink,
+        icons = {
+            old: '<span class="dashicons dashicons-clock" style="font-size: 18px;margin-right: 3px;top: 2px; position: relative;" aria-label="Old topic:"></span>',
+            unattended: '<span class="dashicons dashicons-warning" style="font-size: 18px;margin-right: 3px;top: 2px; position: relative;" aria-label="Unattended topic:"></span>'
+        },
 		settings = {
 			color: {
 				resolved: {
@@ -33,7 +41,7 @@ jQuery(document).ready(function( $ ) {
 					text: 'inherit'
 				}
 			},
-            nonPOrT: false
+            nonPOrT: false // Non-Plugin or Theme highlighting
 		};
 
 	function should_topics_process() {
@@ -49,31 +57,46 @@ jQuery(document).ready(function( $ ) {
 			return false;
 		}
 
-		// Highlight topics that are more than a week old.
+		/* Highlight topics that are more than a week old.
+         * Prepends an icon to indicate this topic is getting old.
+         */
 		$topics = $( '.bbp-topic-freshness' );
 
 		$topics.each(function() {
 			text = $( 'a', $(this) ).text();
+            $permalink = $( 'a.bbp-topic-permalink', $( this ).closest( 'ul' ) );
 
 			if ( text.includes( 'week' ) || text.includes( 'month' ) || text.includes( 'year' ) ) {
 				$(this).closest( 'ul' ).css( 'background-color', settings.color.old.background );
-				$( 'a', $( this ).closest( 'ul' ) ).css( 'color', settings.color.old.text )
+				$( 'a', $( this ).closest( 'ul' ) ).css( 'color', settings.color.old.text );
+
+                $( '.dashicons', $permalink ).remove();
+                $permalink.prepend( icons.old );
 			}
 		});
 
-		// Highlight topics not yet replied to.
+		/* Highlight topics not yet replied to.
+         * Prepends an icon to indicate this topic has gone unattended.
+         */
 		$topics = $( '.bbp-topic-voice-count' );
 
 		$topics.each(function() {
 			text = $(this).text();
+            $permalink = $( 'a.bbp-topic-permalink', $( this ).closest( 'ul' ) );
 
 			if ( '1' === text ) {
 				$(this).closest( 'ul' ).css( 'background-color', settings.color.new.background );
 				$( 'a', $( this ).closest( 'ul' ) ).css( 'color', settings.color.new.text );
+
+                $( '.dashicons', $permalink ).remove();
+                $permalink.prepend( icons.unattended );
 			}
 		});
 
-		// Highlight resolved threads.
+		/* Highlight resolved threads.
+         * Resolved topics on the forums already get prepended with a check-mark tick, so we don't
+         * need to add any other indicators our selves.
+         */
 		$( 'span.resolved' ).closest( 'ul' ).css( 'background-color', settings.color.resolved.background );
 		$( 'a', $( 'span.resolved' ).closest( 'ul' ) ).css( 'color', settings.color.resolved.text )
 	}
