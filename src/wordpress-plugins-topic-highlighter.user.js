@@ -6,8 +6,6 @@
 // @author       Clorith
 // @match        https://wordpress.org/support/*
 // @match        https://*.wordpress.org/support/*
-// @exclude      https://wordpress.org/support/plugin/*/reviews/
-// @exclude      https://*.wordpress.org/support/plugin/*/reviews/
 // @exclude      https://wordpress.org/support/view/pending*
 // @exclude      https://*.wordpress.org/support/view/pending*
 // @exclude      https://wordpress.org/support/view/spam*
