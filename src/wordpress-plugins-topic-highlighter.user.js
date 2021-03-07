@@ -81,7 +81,7 @@ jQuery(document).ready(function( $ ) {
 					$( this ).css( 'background-color', settings.color.old.background );
 					$( this ).find( 'a' ).css( 'color', settings.color.old.text );
 					
-					$( '.dashicons', $permalink ).remove();
+					$permalink.find( '.dashicons' ).not('.wporg-ratings .dashicons').remove();
 					$permalink.prepend( icons.old );
 				}	
 				/* Highlight topics not yet replied to.
@@ -91,7 +91,7 @@ jQuery(document).ready(function( $ ) {
 					$( this ).css( 'background-color', settings.color.new.background );
 					$( this ).find( 'a' ).css( 'color', settings.color.new.text );
 		
-					$( '.dashicons', $permalink ).remove();
+					$permalink.find( '.dashicons' ).not('.wporg-ratings .dashicons').remove();
 					$permalink.prepend( icons.unattended );
 				}
 			}
