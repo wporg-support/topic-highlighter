@@ -24,10 +24,10 @@ jQuery(document).ready(function( $ ) {
 	 */
 
 	var text, $topics, $permalink,
-        icons = {
-            old: '<span class="dashicons dashicons-clock" style="font-size: 18px;margin-right: 3px;top: 2px; position: relative;" aria-label="Old topic:"></span>',
-            unattended: '<span class="dashicons dashicons-warning" style="font-size: 18px;margin-right: 3px;top: 2px; position: relative;" aria-label="Unattended topic:"></span>'
-        },
+		icons = {
+			old: '<span class="dashicons dashicons-clock" style="font-size: 18px;margin-right: 3px;top: 2px; position: relative;" aria-label="Old topic:"></span>',
+			unattended: '<span class="dashicons dashicons-warning" style="font-size: 18px;margin-right: 3px;top: 2px; position: relative;" aria-label="Unattended topic:"></span>'
+		},
 		settings = {
 			color: {
 				resolved: {
@@ -43,64 +43,59 @@ jQuery(document).ready(function( $ ) {
 					text: 'inherit'
 				}
 			},
-            nonPOrT: false // Non-Plugin or Theme highlighting
+			nonPOrT: false // Non-Plugin or Theme highlighting
 		};
 
 	function should_topics_process() {
-        if (settings.nonPOrT) {
-            return true;
-        }
+		if (settings.nonPOrT) {
+			return true;
+		}
 
-        return window.location.href.match(/\/support\/(theme|plugin)\/*/g);
-    }
+		return window.location.href.match(/\/support\/(theme|plugin)\/*/g);
+	}
 
 	function process_topics() {
 		if ( ! should_topics_process() ) {
 			return false;
 		}
 
-		/* Highlight topics that are more than a week old.
-         * Prepends an icon to indicate this topic is getting old.
-         */
-		$topics = $( '.bbp-topic-freshness' );
-
+		$topics = $( '.bbp-body > ul' );
 		$topics.each(function() {
-			text = $( 'a', $(this) ).text();
-            $permalink = $( 'a.bbp-topic-permalink', $( this ).closest( 'ul' ) );
+			let $permalink = $( this ).find( 'a.bbp-topic-permalink' );
+			let voicecount = $( this ).find( '.bbp-topic-voice-count' ).text();
+			let freshness  = $( this ).find( '.bbp-topic-freshness' ).text();
+			let resolved   = $permalink.find('.resolved').length > 0;
 
-			if ( text.includes( 'week' ) || text.includes( 'month' ) || text.includes( 'year' ) ) {
-				$(this).closest( 'ul' ).css( 'background-color', settings.color.old.background );
-				$( 'a', $( this ).closest( 'ul' ) ).css( 'color', settings.color.old.text );
-
-                $( '.dashicons', $permalink ).remove();
-                $permalink.prepend( icons.old );
+			/* Highlight resolved threads.
+			* Resolved topics on the forums already get prepended with a check-mark tick, so we don't
+			* need to add any other indicators our selves.
+			*/
+			if ( resolved ) {
+				$( this ).css( 'background-color', settings.color.resolved.background );
+				$( this ).find( 'a' ).css( 'color', settings.color.resolved.text );
+			} else {
+				/* Highlight topics that are more than a week old.
+				* Prepends an icon to indicate this topic is getting old.
+				*/
+				if ( freshness.includes( 'week' ) || freshness.includes( 'month' ) || freshness.includes( 'year' ) ) {
+					$( this ).css( 'background-color', settings.color.old.background );
+					$( this ).find( 'a' ).css( 'color', settings.color.old.text );
+					
+					$permalink.find( '.dashicons' ).not('.wporg-ratings .dashicons').remove();
+					$permalink.prepend( icons.old );
+				}	
+				/* Highlight topics not yet replied to.
+				* Prepends an icon to indicate this topic has gone unattended.
+				*/
+				if ( '1' === voicecount ) {
+					$( this ).css( 'background-color', settings.color.new.background );
+					$( this ).find( 'a' ).css( 'color', settings.color.new.text );
+		
+					$permalink.find( '.dashicons' ).not('.wporg-ratings .dashicons').remove();
+					$permalink.prepend( icons.unattended );
+				}
 			}
 		});
-
-		/* Highlight topics not yet replied to.
-         * Prepends an icon to indicate this topic has gone unattended.
-         */
-		$topics = $( '.bbp-topic-voice-count' );
-
-		$topics.each(function() {
-			text = $(this).text();
-            $permalink = $( 'a.bbp-topic-permalink', $( this ).closest( 'ul' ) );
-
-			if ( '1' === text ) {
-				$(this).closest( 'ul' ).css( 'background-color', settings.color.new.background );
-				$( 'a', $( this ).closest( 'ul' ) ).css( 'color', settings.color.new.text );
-
-                $( '.dashicons', $permalink ).remove();
-                $permalink.prepend( icons.unattended );
-			}
-		});
-
-		/* Highlight resolved threads.
-         * Resolved topics on the forums already get prepended with a check-mark tick, so we don't
-         * need to add any other indicators our selves.
-         */
-		$( 'span.resolved' ).closest( 'ul' ).css( 'background-color', settings.color.resolved.background );
-		$( 'a', $( 'span.resolved' ).closest( 'ul' ) ).css( 'color', settings.color.resolved.text )
 	}
 
 	function set_colors() {
