@@ -10,20 +10,27 @@
 // @exclude      https://*.wordpress.org/support/view/pending*
 // @exclude      https://wordpress.org/support/view/spam*
 // @exclude      https://*.wordpress.org/support/view/spam*
-// @require      https://code.jquery.com/jquery-1.11.0.min.js
 // @resource     configHtml https://raw.githubusercontent.com/wporg-support/topic-highlighter/trunk/src/options.html
 // @updateURL    https://github.com/wporg-support/topic-highlighter/raw/trunk/src/wordpress-plugins-topic-highlighter.user.js
 // @downloadURL  https://github.com/wporg-support/topic-highlighter/raw/trunk/src/wordpress-plugins-topic-highlighter.user.js
 // @grant        GM_getResourceText
 // ==/UserScript==
 
-jQuery(document).ready(function( $ ) {
+if ( document.readyState === 'loading' ) {
+	document.addEventListener( 'DOMContentLoaded', TopicHighlighter );
+} else {
+	TopicHighlighter();
+}
+
+function TopicHighlighter() {
 	/*
 	 * The rules here are cascading, later rules will overwrite earlier ones.
 	 * This is done to ensure the right priority is applied, as some states are more important than others.
 	 */
 
-	var text, $topics, $permalink,
+	const isReviewsPage = document.body.classList.contains( 'bbp-view-reviews' );
+
+	let topics,
 		icons = {
 			old: '<span class="dashicons dashicons-clock" style="font-size: 18px;margin-right: 3px;top: 2px; position: relative;" aria-label="Old topic:"></span>',
 			unattended: '<span class="dashicons dashicons-warning" style="font-size: 18px;margin-right: 3px;top: 2px; position: relative;" aria-label="Unattended topic:"></span>',
@@ -65,49 +72,54 @@ jQuery(document).ready(function( $ ) {
 			return false;
 		}
 
-		let is_reviews_page = $( 'body' ).hasClass( 'bbp-view-reviews' );
-		$topics = $( '.bbp-body > ul' );
-		$topics.each(function() {
-			let $permalink = $( this ).find( 'a.bbp-topic-permalink' );
-			let voicecount = Number( $( this ).find( '.bbp-topic-voice-count' ).text() );
-			let freshness  = $( this ).find( '.bbp-topic-freshness' ).text();
-			let resolved   = $permalink.find('.resolved').length > 0;
-			let archived   = $( this ).hasClass( 'status-archived' );
+		let permalink,
+			voiceCount,
+			freshness,
+			resolved,
+			archived;
+
+		topics = document.body.querySelectorAll( '.bbp-body > ul' );
+		topics.forEach(function(topic) {
+			permalink = topic.querySelector('a.bbp-topic-permalink');
+			voiceCount = Number(topic.querySelector('.bbp-topic-voice-count').textContent);
+			freshness = topic.querySelector('.bbp-topic-freshness').textContent;
+			resolved = permalink.querySelectorAll('.resolved').length > 0;
+			archived = topic.classList.contains('status-archived');
 
 			/* Highlight resolved threads.
 			* Resolved topics on the forums already get prepended with a check-mark tick, so we don't
 			* need to add any other indicators our selves.
 			*/
 			if ( archived ) {
-				$( this ).css( 'background-color', settings.color.archived.background );
-				$( this ).find( 'a' ).css( 'color', settings.color.archived.text );
-				$( this ).find( 'li' ).css( 'color', settings.color.archived.text );
+				topic.style.backgroundColor = settings.color.archived.background;
+				topic.querySelectorAll('a').forEach(a => a.style.color = settings.color.archived.text);
+				topic.querySelectorAll('li').forEach(li => li.style.color = settings.color.archived.text);
 
-				$permalink.find( '.dashicons' ).not('.wporg-ratings .dashicons').remove();
-				$permalink.prepend( icons.archived );
-			} else if ( resolved || ( settings.reviewReplyResolved && is_reviews_page && voicecount > 1 ) ) {
-				$( this ).css( 'background-color', settings.color.resolved.background );
-				$( this ).find( 'a' ).css( 'color', settings.color.resolved.text );
+				permalink.querySelectorAll('.dashicons:not(.wporg-ratings .dashicons)').forEach(icon => icon.remove());
+				permalink.insertAdjacentHTML('afterbegin', icons.archived);
+			} else if ( resolved || ( settings.reviewReplyResolved && isReviewsPage && voiceCount > 1 ) ) {
+				topic.style.backgroundColor = settings.color.resolved.background;
+				topic.querySelectorAll('a').forEach(a => a.style.color = settings.color.resolved.text);
 			} else {
 				/* Highlight topics that are more than a week old.
 				* Prepends an icon to indicate this topic is getting old.
 				*/
 				if ( freshness.includes( 'week' ) || freshness.includes( 'month' ) || freshness.includes( 'year' ) ) {
-					$( this ).css( 'background-color', settings.color.old.background );
-					$( this ).find( 'a' ).css( 'color', settings.color.old.text );
+					topic.style.backgroundColor = settings.color.old.background;
+					topic.querySelectorAll('a').forEach(a => a.style.color = settings.color.old.text);
 
-					$permalink.find( '.dashicons' ).not('.wporg-ratings .dashicons').remove();
-					$permalink.prepend( icons.old );
+					permalink.querySelectorAll('.dashicons:not(.wporg-ratings .dashicons)').forEach(icon => icon.remove());
+					permalink.insertAdjacentHTML('afterbegin', icons.old);
 				}
 				/* Highlight topics not yet replied to.
 				* Prepends an icon to indicate this topic has gone unattended.
 				*/
-				if ( 1 == voicecount ) {
-					$( this ).css( 'background-color', settings.color.new.background );
-					$( this ).find( 'a' ).css( 'color', settings.color.new.text );
+				if ( 1 === voiceCount ) {
+					topic.style.backgroundColor = settings.color.new.background;
+					topic.querySelectorAll('a').forEach(a => a.style.color = settings.color.new.text);
 
-					$permalink.find( '.dashicons' ).not('.wporg-ratings .dashicons').remove();
-					$permalink.prepend( icons.unattended );
+					permalink.querySelectorAll('.dashicons:not(.wporg-ratings .dashicons)').forEach(icon => icon.remove());
+					permalink.insertAdjacentHTML('afterbegin', icons.unattended);
 				}
 			}
 		});
@@ -128,12 +140,10 @@ jQuery(document).ready(function( $ ) {
 	}
 
 	function set_colors() {
-		var stored = localStorage.getItem( 'wp_highlighter' );
+		let stored = localStorage.getItem( 'wp_highlighter' );
 
 		if ( null !== stored ) {
 			stored = JSON.parse( stored );
-			console.log( stored );
-
 			settings = mergeSettings( settings, stored );
 		}
 	}
@@ -145,49 +155,57 @@ jQuery(document).ready(function( $ ) {
 	process_topics();
 
 	// Add options link to the sidebar.
-	$( '.entry-meta.sidebar div:first-of-type ul' ).append( '<li><a href="#" id="tamper-show-options">Highlighter Options</a></li>' );
+	document.querySelector('.entry-meta.sidebar div:first-of-type ul').insertAdjacentHTML('beforeend', '<li><a href="#" id="tamper-show-options">Highlighter Options</a></li>');
 
 	// Trigger options form display
-	$(".entry-meta").on( 'click', '#tamper-show-options', function( e ) {
-		e.preventDefault();
+	document.querySelector('.entry-meta').addEventListener('click', function(e) {
+		if (e.target && e.target.id === 'tamper-show-options') {
+			e.preventDefault();
 
-		$( '#bbpress-forums' ).prepend( GM_getResourceText( 'configHtml' ) );
+			document.querySelector('#bbpress-forums').insertAdjacentHTML('afterbegin', GM_getResourceText('configHtml'));
 
-		$( '#tamper-wp-topic-highlighter-resolved' ).val( settings.color.resolved.background );
-		$( '#tamper-wp-topic-highlighter-resolved-text' ).val( settings.color.resolved.text );
-		$( '#tamper-wp-topic-highlighter-new' ).val( settings.color.new.background );
-		$( '#tamper-wp-topic-highlighter-new-text' ).val( settings.color.new.text );
-		$( '#tamper-wp-topic-highlighter-old' ).val( settings.color.old.background );
-		$( '#tamper-wp-topic-highlighter-old-text' ).val( settings.color.old.text );
-		$( '#tamper-wp-topic-highlighter-archived' ).val( settings.color.archived.background );
-		$( '#tamper-wp-topic-highlighter-archived-text' ).val( settings.color.archived.text );
- 		$( '#tamper-wp-topic-highlighter-nonport' ).prop( 'checked', settings.nonPOrT );
- 		$( '#tamper-wp-topic-highlighter-reviewReplyResolved' ).prop( 'checked', settings.reviewReplyResolved );
+			document.querySelector('#tamper-wp-topic-highlighter-resolved').value = settings.color.resolved.background;
+			document.querySelector('#tamper-wp-topic-highlighter-resolved-text').value = settings.color.resolved.text;
+			document.querySelector('#tamper-wp-topic-highlighter-new').value = settings.color.new.background;
+			document.querySelector('#tamper-wp-topic-highlighter-new-text').value = settings.color.new.text;
+			document.querySelector('#tamper-wp-topic-highlighter-old').value = settings.color.old.background;
+			document.querySelector('#tamper-wp-topic-highlighter-old-text').value = settings.color.old.text;
+			document.querySelector('#tamper-wp-topic-highlighter-archived').value = settings.color.archived.background;
+			document.querySelector('#tamper-wp-topic-highlighter-archived-text').value = settings.color.archived.text;
+			document.querySelector('#tamper-wp-topic-highlighter-nonport').checked = settings.nonPOrT;
+			document.querySelector('#tamper-wp-topic-highlighter-reviewReplyResolved').checked = settings.reviewReplyResolved;
+		}
 	});
 
 	// Save options
-	$( '#page' ).on( 'submit', '#tamper-wp-topic-highlighter', function( e ) {
-		e.preventDefault();
+	document.querySelector('#page').addEventListener('submit', function(e) {
+		if (e.target && e.target.id === 'tamper-wp-topic-highlighter') {
+			e.preventDefault();
 
-		settings.color.resolved.background = $( '#tamper-wp-topic-highlighter-resolved' ).val();
-		settings.color.resolved.text = $( '#tamper-wp-topic-highlighter-resolved-text' ).val();
-		settings.color.new.background = $( '#tamper-wp-topic-highlighter-new' ).val();
-		settings.color.new.text = $( '#tamper-wp-topic-highlighter-new-text' ).val();
-		settings.color.old.background = $( '#tamper-wp-topic-highlighter-old' ).val();
-		settings.color.old.text = $( '#tamper-wp-topic-highlighter-old-text' ).val();
-		settings.color.archived.background = $( '#tamper-wp-topic-highlighter-archived' ).val();
-		settings.color.archived.text = $( '#tamper-wp-topic-highlighter-archived-text' ).val();
-		settings.nonPOrT = $( '#tamper-wp-topic-highlighter-nonport' ).is( ':checked');
-		settings.reviewReplyResolved = $( '#tamper-wp-topic-highlighter-reviewReplyResolved' ).is( ':checked');
+			settings.color.resolved.background = document.querySelector('#tamper-wp-topic-highlighter-resolved').value;
+			settings.color.resolved.text = document.querySelector('#tamper-wp-topic-highlighter-resolved-text').value;
+			settings.color.new.background = document.querySelector('#tamper-wp-topic-highlighter-new').value;
+			settings.color.new.text = document.querySelector('#tamper-wp-topic-highlighter-new-text').value;
+			settings.color.old.background = document.querySelector('#tamper-wp-topic-highlighter-old').value;
+			settings.color.old.text = document.querySelector('#tamper-wp-topic-highlighter-old-text').value;
+			settings.color.archived.background = document.querySelector('#tamper-wp-topic-highlighter-archived').value;
+			settings.color.archived.text = document.querySelector('#tamper-wp-topic-highlighter-archived-text').value;
+			settings.nonPOrT = document.querySelector('#tamper-wp-topic-highlighter-nonport').checked;
+			settings.reviewReplyResolved = document.querySelector('#tamper-wp-topic-highlighter-reviewReplyResolved').checked;
 
-		localStorage.setItem( 'wp_highlighter', JSON.stringify( settings ) );
+			localStorage.setItem('wp_highlighter', JSON.stringify(settings));
 
-		$( this ).remove();
+			e.target.remove();
 
-		// Re-process topics after making edits.
-		process_topics();
-	}).on( 'click', '.cancel', function( e ) {
-		e.preventDefault();
-		$( this ).closest( 'form' ).remove();
+			// Re-process topics after making edits.
+			process_topics();
+		}
 	});
-});
+
+	document.querySelector('#page').addEventListener('click', function(e) {
+		if (e.target && e.target.classList.contains('cancel')) {
+			e.preventDefault();
+			e.target.closest('form').remove();
+		}
+	});
+}
