@@ -59,10 +59,11 @@ jQuery(document).ready(function( $ ) {
 			return false;
 		}
 
+		let is_reviews_page = $( 'body' ).hasClass( 'bbp-view-reviews' );
 		$topics = $( '.bbp-body > ul' );
 		$topics.each(function() {
 			let $permalink = $( this ).find( 'a.bbp-topic-permalink' );
-			let voicecount = $( this ).find( '.bbp-topic-voice-count' ).text();
+			let voicecount = Number( $( this ).find( '.bbp-topic-voice-count' ).text() );
 			let freshness  = $( this ).find( '.bbp-topic-freshness' ).text();
 			let resolved   = $permalink.find('.resolved').length > 0;
 
@@ -70,7 +71,7 @@ jQuery(document).ready(function( $ ) {
 			* Resolved topics on the forums already get prepended with a check-mark tick, so we don't
 			* need to add any other indicators our selves.
 			*/
-			if ( resolved ) {
+			if ( resolved || ( is_reviews_page && voicecount > 1 ) ) {
 				$( this ).css( 'background-color', settings.color.resolved.background );
 				$( this ).find( 'a' ).css( 'color', settings.color.resolved.text );
 			} else {
@@ -87,7 +88,7 @@ jQuery(document).ready(function( $ ) {
 				/* Highlight topics not yet replied to.
 				* Prepends an icon to indicate this topic has gone unattended.
 				*/
-				if ( '1' === voicecount ) {
+				if ( 1 == voicecount ) {
 					$( this ).css( 'background-color', settings.color.new.background );
 					$( this ).find( 'a' ).css( 'color', settings.color.new.text );
 		
