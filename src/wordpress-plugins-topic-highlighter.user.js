@@ -48,7 +48,8 @@ jQuery(document).ready(function( $ ) {
 					text: '#fff'
 				}
 			},
-			nonPOrT: false // Non-Plugin or Theme highlighting
+			nonPOrT: false, // Non-Plugin or Theme highlighting.
+			reviewReplyResolved: false // Reviews with replies are considered resolved.
 		};
 
 	function should_topics_process() {
@@ -84,7 +85,7 @@ jQuery(document).ready(function( $ ) {
 
 				$permalink.find( '.dashicons' ).not('.wporg-ratings .dashicons').remove();
 				$permalink.prepend( icons.archived );
-			} else if ( resolved || ( is_reviews_page && voicecount > 1 ) ) {
+			} else if ( resolved || ( settings.reviewReplyResolved && is_reviews_page && voicecount > 1 ) ) {
 				$( this ).css( 'background-color', settings.color.resolved.background );
 				$( this ).find( 'a' ).css( 'color', settings.color.resolved.text );
 			} else {
@@ -161,6 +162,7 @@ jQuery(document).ready(function( $ ) {
 		$( '#tamper-wp-topic-highlighter-archived' ).val( settings.color.archived.background );
 		$( '#tamper-wp-topic-highlighter-archived-text' ).val( settings.color.archived.text );
  		$( '#tamper-wp-topic-highlighter-nonport' ).prop( 'checked', settings.nonPOrT );
+ 		$( '#tamper-wp-topic-highlighter-reviewReplyResolved' ).prop( 'checked', settings.reviewReplyResolved );
 	});
 
 	// Save options
@@ -176,6 +178,7 @@ jQuery(document).ready(function( $ ) {
 		settings.color.archived.background = $( '#tamper-wp-topic-highlighter-archived' ).val();
 		settings.color.archived.text = $( '#tamper-wp-topic-highlighter-archived-text' ).val();
 		settings.nonPOrT = $( '#tamper-wp-topic-highlighter-nonport' ).is( ':checked');
+		settings.reviewReplyResolved = $( '#tamper-wp-topic-highlighter-reviewReplyResolved' ).is( ':checked');
 
 		localStorage.setItem( 'wp_highlighter', JSON.stringify( settings ) );
 
