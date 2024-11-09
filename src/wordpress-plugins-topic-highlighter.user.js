@@ -30,6 +30,8 @@ function TopicHighlighter() {
 
 	const isReviewsPage = document.body.classList.contains( 'bbp-view-reviews' );
 
+	let formRendered = false;
+
 	let topics,
 		icons = {
 			old: '<span class="dashicons dashicons-clock" style="font-size: 18px;margin-right: 3px;top: 2px; position: relative;" aria-label="Old topic:"></span>',
@@ -162,6 +164,11 @@ function TopicHighlighter() {
 		if (e.target && e.target.id === 'tamper-show-options') {
 			e.preventDefault();
 
+			// Check if the DOM contains the dynamically injected DOM node for the form already, if so, don't add it again.
+			if ( formRendered ) {
+				return;
+			}
+
 			document.querySelector('#bbpress-forums').insertAdjacentHTML('afterbegin', GM_getResourceText('configHtml'));
 
 			document.querySelector('#tamper-wp-topic-highlighter-resolved').value = settings.color.resolved.background;
@@ -174,6 +181,8 @@ function TopicHighlighter() {
 			document.querySelector('#tamper-wp-topic-highlighter-archived-text').value = settings.color.archived.text;
 			document.querySelector('#tamper-wp-topic-highlighter-nonport').checked = settings.nonPOrT;
 			document.querySelector('#tamper-wp-topic-highlighter-reviewReplyResolved').checked = settings.reviewReplyResolved;
+
+			formRendered = true;
 		}
 	});
 
@@ -196,6 +205,7 @@ function TopicHighlighter() {
 			localStorage.setItem('wp_highlighter', JSON.stringify(settings));
 
 			e.target.remove();
+			formRendered = false;
 
 			// Re-process topics after making edits.
 			process_topics();
@@ -210,6 +220,7 @@ function TopicHighlighter() {
 		if (e.target && e.target.classList.contains('cancel')) {
 			e.preventDefault();
 			e.target.closest('form').remove();
+			formRendered = false;
 		}
 	});
 }
