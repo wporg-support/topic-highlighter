@@ -4,12 +4,13 @@
 
 This is a userscript, used with TamperMonkey or GreaseMonkey, to highlight support topics for plugins and themes on WordPress.org.
 
-It does this by putting them into three actionable categories:
+It does this by putting them into four actionable categories:
+- Archived topics (only for moderators)
 - Resolved topics
 - Unresolved topics that are more than a week old
 - Unresolved topics, less than a week old, that have yet to receive any response
 
-The view is color-coded to allow you to quickly identify which topics need attention based on your own support criteria.
+The view is color-, and icon-coded to allow you to quickly identify which topics need attention, and which can be ignored.
 
 ## Installation
 
