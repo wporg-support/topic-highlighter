@@ -203,6 +203,10 @@ function TopicHighlighter() {
 	});
 
 	document.querySelector('#page').addEventListener('click', function(e) {
+		if ( e.target.closest( 'form' ).id !== 'tamper-wp-topic-highlighter' ) {
+			return;
+		}
+
 		if (e.target && e.target.classList.contains('cancel')) {
 			e.preventDefault();
 			e.target.closest('form').remove();
